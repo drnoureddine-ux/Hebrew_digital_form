@@ -140,69 +140,19 @@ function App() {
   }
 
   const sendFormByEmail = async () => {
+    // Show initial message
+    alert("מתחיל הורדת הטופס... אנא המתן")
+    
     try {
-      // Show loading message
-      alert("מכין את הטופס והדוא\"ל... אנא המתן")
+      // First, always try to download the PDF
+      await generatePDF()
       
-      // Wait a moment for the alert to show
-      await new Promise(resolve => setTimeout(resolve, 500))
+      // Wait a moment for download to complete
+      await new Promise(resolve => setTimeout(resolve, 2000))
       
-      // Check if we're on mobile
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-      
-      // First, generate and download the PDF
-      if (!formRef.current) {
-        throw new Error("Form reference not found")
-      }
-
-      // Mobile-optimized canvas settings
-      const canvasOptions = {
-        scale: isMobile ? 1 : 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width: formRef.current.scrollWidth,
-        height: formRef.current.scrollHeight,
-        windowWidth: window.innerWidth,
-        windowHeight: window.innerHeight
-      }
-
-      // Generate PDF with signatures
-      const canvas = await html2canvas(formRef.current, canvasOptions)
-
-      // Create PDF
-      const imgData = canvas.toDataURL('image/jpeg', 0.8)
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      
-      // Calculate dimensions to fit A4
-      const imgWidth = 210 // A4 width in mm
-      const pageHeight = 295 // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      let heightLeft = imgHeight
-      let position = 0
-
-      // Add first page
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
-
-      // Add additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight
-        pdf.addPage()
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
-        heightLeft -= pageHeight
-      }
-
-      // Generate filename
+      // Generate filename for reference
       const fileName = `טופס_הרשאה_${formData.name || 'ללא_שם'}_${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
       
-      // Download the PDF
-      pdf.save(fileName)
-      
-      // Wait a moment for download to start
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
       // Prepare email data
       const serviceType = [
         formData.checkbox1 ? "יועץ פנסיוני" : "",
@@ -241,8 +191,8 @@ function App() {
 
 תאריך שליחה: ${new Date().toLocaleDateString('he-IL')}
 
-הערה: הטופס המלא עם החתימות הדיגיטליות הורד אוטומטית למחשב שלך בשם "${fileName}". 
-אנא צרף את קובץ ה-PDF לדוא"ל זה לפני השליחה.
+🔗 הטופס המלא עם החתימות הדיגיטליות הורד אוטומטית למחשב שלך.
+📎 אנא צרף את קובץ ה-PDF "${fileName}" לדוא"ל זה לפני השליחה.
 
 בברכה,
 מערכת הטפסים הדיגיטליים`
@@ -250,18 +200,18 @@ function App() {
       // Create mailto link
       const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
       
-      // Open email client
-      window.location.href = mailtoLink
+      // Show success message with clear instructions
+      alert(`✅ הטופס הורד בהצלחה!\n\n📧 עכשיו ייפתח לך תוכנת הדוא"ל.\n📎 אנא צרף את הקובץ "${fileName}" מתיקיית ההורדות ושלח את הדוא"ל.`)
       
-      // Show success message
+      // Wait a moment then open email
       setTimeout(() => {
-        alert(`✅ הטופס הורד בהצלחה בשם "${fileName}" ונפתח לך תוכנת הדוא"ל!\n\nאנא צרף את קובץ ה-PDF מתיקיית ההורדות ושלח את הדוא"ל.`)
-      }, 800)
+        window.location.href = mailtoLink
+      }, 1000)
 
     } catch (error) {
       console.error("Error generating PDF:", error)
       
-      // Fallback: Just open email without PDF
+      // Fallback: Just open email with instructions to use download button
       const serviceType = [
         formData.checkbox1 ? "יועץ פנסיוני" : "",
         formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
@@ -288,15 +238,18 @@ function App() {
 
 תאריך שליחה: ${new Date().toLocaleDateString('he-IL')}
 
-הערה: הטופס נשלח ללא PDF. אנא השתמש בכפתור "הורד טופס מלא" להורדת הטופס עם החתימות ושלח בנפרד.
+⚠️ הערה: לקבלת הטופס המלא עם החתימות הדיגיטליות, אנא השתמש בכפתור "הורד טופס מלא" באתר ושלח את ה-PDF בנפרד.
 
 בברכה,
 מערכת הטפסים הדיגיטליים`
 
       const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-      window.location.href = mailtoLink
       
-      alert("📧 הדוא\"ל נפתח עם פרטי הטופס. להורדת PDF עם חתימות השתמש בכפתור 'הורד טופס מלא' ושלח בנפרד.")
+      alert("📧 הדוא\"ל ייפתח עם פרטי הטופס.\n💡 להורדת PDF עם חתימות השתמש בכפתור 'הורד טופס מלא' ושלח בנפרד.")
+      
+      setTimeout(() => {
+        window.location.href = mailtoLink
+      }, 1000)
     }
   }
 
