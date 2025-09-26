@@ -144,18 +144,29 @@ function App() {
       // Show loading message
       alert("מכין את הטופס לשליחה... אנא המתן")
       
+      // Wait a moment for the alert to show
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Check if formRef exists
+      if (!formRef.current) {
+        throw new Error("Form reference not found")
+      }
+
       // Generate PDF with signatures
       const canvas = await html2canvas(formRef.current, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
+        logging: false,
         width: formRef.current.scrollWidth,
-        height: formRef.current.scrollHeight
+        height: formRef.current.scrollHeight,
+        windowWidth: formRef.current.scrollWidth,
+        windowHeight: formRef.current.scrollHeight
       })
 
       // Create PDF
-      const imgData = canvas.toDataURL('image/png')
+      const imgData = canvas.toDataURL('image/png', 0.8)
       const pdf = new jsPDF('p', 'mm', 'a4')
       
       // Calculate dimensions to fit A4
@@ -178,10 +189,8 @@ function App() {
         heightLeft -= pageHeight
       }
 
-      // Convert PDF to blob
+      // Convert PDF to blob and create download
       const pdfBlob = pdf.output('blob')
-      
-      // Create download link for the PDF
       const pdfUrl = URL.createObjectURL(pdfBlob)
       const downloadLink = document.createElement('a')
       downloadLink.href = pdfUrl
@@ -189,7 +198,9 @@ function App() {
       document.body.appendChild(downloadLink)
       downloadLink.click()
       document.body.removeChild(downloadLink)
-      URL.revokeObjectURL(pdfUrl)
+      
+      // Clean up
+      setTimeout(() => URL.revokeObjectURL(pdfUrl), 1000)
 
       // Prepare email data
       const serviceType = [
@@ -248,7 +259,43 @@ function App() {
 
     } catch (error) {
       console.error("Error generating PDF:", error)
-      alert("❌ שגיאה ביצירת הטופס. אנא נסה שוב")
+      
+      // Fallback: Just open email without PDF
+      const serviceType = [
+        formData.checkbox1 ? "יועץ פנסיוני" : "",
+        formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
+        formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
+      ].filter(Boolean).join(", ")
+
+      const emailSubject = `טופס הרשאה חד פעמית - ${formData.name || "ללא שם"}`
+      
+      const emailBody = `שלום,
+
+התקבל טופס הרשאה חד פעמית חדש:
+
+פרטי הלקוח:
+- שם: ${formData.name || "לא צוין"}
+- מספר זיהוי: ${formData.idChars.join('') || "לא צוין"}
+- כתובת: ${formData.address || "לא צוין"}
+- טלפון: ${formData.phone || "לא צוין"}
+- דוא"ל: ${formData.email || "לא צוין"}
+
+פרטי הסוכן/יועץ:
+- שם: ${formData.agentName || "לא צוין"}
+- מספר רישיון: ${formData.licenseNumber || "לא צוין"}
+- סוג שירות: ${serviceType || "לא צוין"}
+
+תאריך שליחה: ${new Date().toLocaleDateString('he-IL')}
+
+הערה: אירעה שגיאה ביצירת ה-PDF. אנא השתמש בכפתור "הורד טופס מלא" להורדת הטופס בנפרד.
+
+בברכה,
+מערכת הטפסים הדיגיטליים`
+
+      const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+      window.location.href = mailtoLink
+      
+      alert("⚠️ אירעה שגיאה ביצירת ה-PDF. הדוא\"ל נפתח בלי הקובץ - אנא השתמש בכפתור 'הורד טופס מלא' בנפרד")
     }
   }
 
