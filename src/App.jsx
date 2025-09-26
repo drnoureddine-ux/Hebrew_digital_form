@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button.jsx'
 import { Download, ZoomIn, ZoomOut, Mail, Send } from 'lucide-react'
 import SignaturePad from './components/SignaturePad'
-import emailjs from '@emailjs/browser'
 import './App.css'
 
 function App() {
@@ -138,66 +137,60 @@ function App() {
     printWindow.document.close()
   }
 
-  const sendFormByEmail = async () => {
-    try {
-      // Initialize EmailJS (you'll need to replace these with your actual EmailJS credentials)
-      emailjs.init("YOUR_PUBLIC_KEY") // Replace with your EmailJS public key
-      
-      // Prepare form data for email
-      const emailData = {
-        to_email: "recipient@example.com", // Replace with the target email address
-        from_name: formData.name || "טופס עברי",
-        subject: "טופס הרשאה חד פעמית - " + (formData.name || "ללא שם"),
-        
-        // Form data
-        customer_name: formData.name,
-        customer_id: formData.idChars.join(''),
-        customer_address: formData.address,
-        agent_name: formData.agentName,
-        license_number: formData.licenseNumber,
-        phone: formData.phone,
-        email: formData.email,
-        signature_date_1: formData.signatureDate1,
-        signature_date_2: formData.signatureDate2,
-        
-        // Form B data
-        recipient_name: formData.recipient,
-        customer_name_b: formData.nameB,
-        customer_id_b: formData.idCharsB.join(''),
-        table_field_1: formData.tableField1,
-        table_field_2: formData.tableField2,
-        
-        // Service type
-        service_type: [
-          formData.checkbox1 ? "יועץ פנסיוני" : "",
-          formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
-          formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
-        ].filter(Boolean).join(", "),
-        
-        // Signatures as attachments (base64 data)
-        signature_1: formData.signature1,
-        signature_2: formData.signature2,
-        
-        // Current date
-        submission_date: new Date().toLocaleDateString('he-IL')
-      }
+  const sendFormByEmail = () => {
+    // Prepare form data for email
+    const serviceType = [
+      formData.checkbox1 ? "יועץ פנסיוני" : "",
+      formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
+      formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
+    ].filter(Boolean).join(", ")
 
-      // Send email using EmailJS
-      const result = await emailjs.send(
-        "YOUR_SERVICE_ID", // Replace with your EmailJS service ID
-        "YOUR_TEMPLATE_ID", // Replace with your EmailJS template ID
-        emailData
-      )
+    const emailSubject = `טופס הרשאה חד פעמית - ${formData.name || "ללא שם"}`
+    
+    const emailBody = `שלום,
 
-      if (result.status === 200) {
-        alert("הטופס נשלח בהצלחה! ✅")
-      } else {
-        throw new Error("Failed to send email")
-      }
-    } catch (error) {
-      console.error("Error sending email:", error)
-      alert("שגיאה בשליחת הטופס. אנא נסה שוב. ❌")
-    }
+התקבל טופس הרשאה חד פעמית חדש:
+
+פרטי הלקוח:
+- שם: ${formData.name || "לא צוין"}
+- מספר זיהוי: ${formData.idChars.join('') || "לא צוין"}
+- כתובת: ${formData.address || "לא צוין"}
+- טלפון: ${formData.phone || "לא צוין"}
+- דוא"ל: ${formData.email || "לא צוין"}
+
+פרטי הסוכן/יועץ:
+- שם: ${formData.agentName || "לא צוין"}
+- מספר רישיון: ${formData.licenseNumber || "לא צוין"}
+- סוג שירות: ${serviceType || "לא צוין"}
+
+פרטי נוספים (נספח):
+- נמען: ${formData.recipient || "לא צוין"}
+- שם בנספח: ${formData.nameB || "לא צוין"}
+- מספר זיהוי בנספח: ${formData.idCharsB.join('') || "לא צוין"}
+- שדה טבלה 1: ${formData.tableField1 || "לא צוין"}
+- שדה טבלה 2: ${formData.tableField2 || "לא צוין"}
+
+תאריכי חתימה:
+- תאריך חתימה 1: ${formData.signatureDate1 || "לא צוין"}
+- תאריך חתימה 2: ${formData.signatureDate2 || "לא צוין"}
+
+תאריך שליחה: ${new Date().toLocaleDateString('he-IL')}
+
+הערה: חתימות דיגיטליות נשמרו בטופס. להורדת הטופס המלא עם החתימות, השתמש בכפתור "הורד טופס מלא".
+
+בברכה,
+מערכת הטפסים הדיגיטליים`
+
+    // Create mailto link
+    const mailtoLink = `mailto:your-email@example.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    
+    // Open email client
+    window.location.href = mailtoLink
+    
+    // Show confirmation
+    setTimeout(() => {
+      alert("נפתח לך תוכנת הדוא\"ל עם הטופס המוכן לשליחה! ✅")
+    }, 500)
   }
 
   return (
