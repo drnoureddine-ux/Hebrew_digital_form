@@ -145,26 +145,34 @@ function App() {
       alert("מכין את הטופס והדוא\"ל... אנא המתן")
       
       // Wait a moment for the alert to show
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      await new Promise(resolve => setTimeout(resolve, 500))
+      
+      // Check if we're on mobile
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
       
       // First, generate and download the PDF
       if (!formRef.current) {
         throw new Error("Form reference not found")
       }
 
-      // Generate PDF with signatures
-      const canvas = await html2canvas(formRef.current, {
-        scale: 2,
+      // Mobile-optimized canvas settings
+      const canvasOptions = {
+        scale: isMobile ? 1 : 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
         width: formRef.current.scrollWidth,
-        height: formRef.current.scrollHeight
-      })
+        height: formRef.current.scrollHeight,
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight
+      }
+
+      // Generate PDF with signatures
+      const canvas = await html2canvas(formRef.current, canvasOptions)
 
       // Create PDF
-      const imgData = canvas.toDataURL('image/png', 0.9)
+      const imgData = canvas.toDataURL('image/jpeg', 0.8)
       const pdf = new jsPDF('p', 'mm', 'a4')
       
       // Calculate dimensions to fit A4
@@ -175,14 +183,14 @@ function App() {
       let position = 0
 
       // Add first page
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
       heightLeft -= pageHeight
 
       // Add additional pages if needed
       while (heightLeft >= 0) {
         position = heightLeft - imgHeight
         pdf.addPage()
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
         heightLeft -= pageHeight
       }
 
@@ -193,7 +201,7 @@ function App() {
       pdf.save(fileName)
       
       // Wait a moment for download to start
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      await new Promise(resolve => setTimeout(resolve, 1000))
 
       // Prepare email data
       const serviceType = [
@@ -248,7 +256,7 @@ function App() {
       // Show success message
       setTimeout(() => {
         alert(`✅ הטופס הורד בהצלחה בשם "${fileName}" ונפתח לך תוכנת הדוא"ל!\n\nאנא צרף את קובץ ה-PDF מתיקיית ההורדות ושלח את הדוא"ל.`)
-      }, 1000)
+      }, 800)
 
     } catch (error) {
       console.error("Error generating PDF:", error)
@@ -280,7 +288,7 @@ function App() {
 
 תאריך שליחה: ${new Date().toLocaleDateString('he-IL')}
 
-הערה: אירעה שגיאה ביצירת ה-PDF. אנא השתמש בכפתור "הורד טופס מלא" להורדת הטופס בנפרד.
+הערה: הטופס נשלח ללא PDF. אנא השתמש בכפתור "הורד טופס מלא" להורדת הטופס עם החתימות ושלח בנפרד.
 
 בברכה,
 מערכת הטפסים הדיגיטליים`
@@ -288,7 +296,7 @@ function App() {
       const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
       window.location.href = mailtoLink
       
-      alert("⚠️ אירעה שגיאה ביצירת ה-PDF. הדוא\"ל נפתח בלי הקובץ - אנא השתמש בכפתור 'הורד טופס מלא' בנפרד")
+      alert("📧 הדוא\"ל נפתח עם פרטי הטופס. להורדת PDF עם חתימות השתמש בכפתור 'הורד טופס מלא' ושלח בנפרד.")
     }
   }
 
