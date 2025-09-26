@@ -2,6 +2,8 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button.jsx'
 import { Download, ZoomIn, ZoomOut, Mail, Send } from 'lucide-react'
 import SignaturePad from './components/SignaturePad'
+import html2canvas from 'html2canvas'
+import jsPDF from 'jspdf'
 import './App.css'
 
 function App() {
@@ -137,19 +139,70 @@ function App() {
     printWindow.document.close()
   }
 
-  const sendFormByEmail = () => {
-    // Prepare form data for email
-    const serviceType = [
-      formData.checkbox1 ? "יועץ פנסיוני" : "",
-      formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
-      formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
-    ].filter(Boolean).join(", ")
+  const sendFormByEmail = async () => {
+    try {
+      // Show loading message
+      alert("מכין את הטופס לשליחה... אנא המתן")
+      
+      // Generate PDF with signatures
+      const canvas = await html2canvas(formRef.current, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: formRef.current.scrollWidth,
+        height: formRef.current.scrollHeight
+      })
 
-    const emailSubject = `טופס הרשאה חד פעמית - ${formData.name || "ללא שם"}`
-    
-    const emailBody = `שלום,
+      // Create PDF
+      const imgData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      
+      // Calculate dimensions to fit A4
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 295 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      let heightLeft = imgHeight
 
-התקבל טופس הרשאה חד פעמית חדש:
+      let position = 0
+
+      // Add first page
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      // Add additional pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      // Convert PDF to blob
+      const pdfBlob = pdf.output('blob')
+      
+      // Create download link for the PDF
+      const pdfUrl = URL.createObjectURL(pdfBlob)
+      const downloadLink = document.createElement('a')
+      downloadLink.href = pdfUrl
+      downloadLink.download = `טופס_הרשאה_${formData.name || 'ללא_שם'}_${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
+      document.body.appendChild(downloadLink)
+      downloadLink.click()
+      document.body.removeChild(downloadLink)
+      URL.revokeObjectURL(pdfUrl)
+
+      // Prepare email data
+      const serviceType = [
+        formData.checkbox1 ? "יועץ פנסיוני" : "",
+        formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
+        formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
+      ].filter(Boolean).join(", ")
+
+      const emailSubject = `טופס הרשאה חד פעמית - ${formData.name || "ללא שם"}`
+      
+      const emailBody = `שלום,
+
+התקבל טופס הרשאה חד פעמית חדש:
 
 פרטי הלקוח:
 - שם: ${formData.name || "לא צוין"}
@@ -176,21 +229,27 @@ function App() {
 
 תאריך שליחה: ${new Date().toLocaleDateString('he-IL')}
 
-הערה: חתימות דיגיטליות נשמרו בטופס. להורדת הטופס המלא עם החתימות, השתמש בכפתור "הורד טופס מלא".
+הערה: הטופס המלא עם החתימות הדיגיטליות הורד אוטומטית למחשב שלך. 
+אנא צרף את קובץ ה-PDF לדוא"ל זה לפני השליחה.
 
 בברכה,
 מערכת הטפסים הדיגיטליים`
 
-    // Create mailto link
-    const mailtoLink = `mailto:your-email@example.com?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-    
-    // Open email client
-    window.location.href = mailtoLink
-    
-    // Show confirmation
-    setTimeout(() => {
-      alert("נפתח לך תוכנת הדוא\"ל עם הטופס המוכן לשליחה! ✅")
-    }, 500)
+      // Create mailto link
+      const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+      
+      // Open email client
+      window.location.href = mailtoLink
+      
+      // Show success message
+      setTimeout(() => {
+        alert("✅ הטופס הורד בהצלחה! נפתח לך תוכנת הדוא\"ל - אנא צרף את קובץ ה-PDF ושלח את הדוא\"ל")
+      }, 1000)
+
+    } catch (error) {
+      console.error("Error generating PDF:", error)
+      alert("❌ שגיאה ביצירת הטופס. אנא נסה שוב")
+    }
   }
 
   return (
