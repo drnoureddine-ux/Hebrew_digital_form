@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Button } from '@/components/ui/button.jsx'
-import { Download, ZoomIn, ZoomOut } from 'lucide-react'
+import { Download, ZoomIn, ZoomOut, Mail, Send } from 'lucide-react'
 import SignaturePad from './components/SignaturePad'
+import emailjs from '@emailjs/browser'
 import './App.css'
 
 function App() {
@@ -135,6 +136,68 @@ function App() {
       </html>
     `)
     printWindow.document.close()
+  }
+
+  const sendFormByEmail = async () => {
+    try {
+      // Initialize EmailJS (you'll need to replace these with your actual EmailJS credentials)
+      emailjs.init("YOUR_PUBLIC_KEY") // Replace with your EmailJS public key
+      
+      // Prepare form data for email
+      const emailData = {
+        to_email: "recipient@example.com", // Replace with the target email address
+        from_name: formData.name || "טופס עברי",
+        subject: "טופס הרשאה חד פעמית - " + (formData.name || "ללא שם"),
+        
+        // Form data
+        customer_name: formData.name,
+        customer_id: formData.idChars.join(''),
+        customer_address: formData.address,
+        agent_name: formData.agentName,
+        license_number: formData.licenseNumber,
+        phone: formData.phone,
+        email: formData.email,
+        signature_date_1: formData.signatureDate1,
+        signature_date_2: formData.signatureDate2,
+        
+        // Form B data
+        recipient_name: formData.recipient,
+        customer_name_b: formData.nameB,
+        customer_id_b: formData.idCharsB.join(''),
+        table_field_1: formData.tableField1,
+        table_field_2: formData.tableField2,
+        
+        // Service type
+        service_type: [
+          formData.checkbox1 ? "יועץ פנסיוני" : "",
+          formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
+          formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
+        ].filter(Boolean).join(", "),
+        
+        // Signatures as attachments (base64 data)
+        signature_1: formData.signature1,
+        signature_2: formData.signature2,
+        
+        // Current date
+        submission_date: new Date().toLocaleDateString('he-IL')
+      }
+
+      // Send email using EmailJS
+      const result = await emailjs.send(
+        "YOUR_SERVICE_ID", // Replace with your EmailJS service ID
+        "YOUR_TEMPLATE_ID", // Replace with your EmailJS template ID
+        emailData
+      )
+
+      if (result.status === 200) {
+        alert("הטופס נשלח בהצלחה! ✅")
+      } else {
+        throw new Error("Failed to send email")
+      }
+    } catch (error) {
+      console.error("Error sending email:", error)
+      alert("שגיאה בשליחת הטופס. אנא נסה שוב. ❌")
+    }
   }
 
   return (
@@ -567,11 +630,15 @@ function App() {
           </div>
         </div>
 
-        {/* Download button */}
-        <div className="flex justify-center mt-8">
+        {/* Action buttons */}
+        <div className="flex justify-center gap-4 mt-8">
           <Button onClick={generatePDF} className="bg-blue-600 hover:bg-blue-700">
             <Download className="w-4 h-4 ml-2" />
             הורד טופס מלא
+          </Button>
+          <Button onClick={sendFormByEmail} className="bg-green-600 hover:bg-green-700">
+            <Send className="w-4 h-4 ml-2" />
+            שלח בדוא"ל
           </Button>
         </div>
       </div>
