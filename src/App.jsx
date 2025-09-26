@@ -139,75 +139,17 @@ function App() {
     printWindow.document.close()
   }
 
-  const sendFormByEmail = async () => {
-    // Show initial message
-    alert("מתחיל הורדת הטופס... אנא המתן")
+  const sendFormByEmail = () => {
+    // Prepare email data
+    const serviceType = [
+      formData.checkbox1 ? "יועץ פנסיוני" : "",
+      formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
+      formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
+    ].filter(Boolean).join(", ")
+
+    const emailSubject = `טופס הרשאה חד פעמית - ${formData.name || "ללא שם"}`
     
-    try {
-      // Generate PDF and download it directly (not print)
-      if (!formRef.current) {
-        throw new Error("Form reference not found")
-      }
-
-      // Check if we're on mobile
-      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-
-      // Mobile-optimized canvas settings
-      const canvasOptions = {
-        scale: isMobile ? 1 : 2,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
-        width: formRef.current.scrollWidth,
-        height: formRef.current.scrollHeight
-      }
-
-      // Generate PDF with signatures
-      const canvas = await html2canvas(formRef.current, canvasOptions)
-
-      // Create PDF
-      const imgData = canvas.toDataURL('image/jpeg', 0.8)
-      const pdf = new jsPDF('p', 'mm', 'a4')
-      
-      // Calculate dimensions to fit A4
-      const imgWidth = 210 // A4 width in mm
-      const pageHeight = 295 // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      let heightLeft = imgHeight
-      let position = 0
-
-      // Add first page
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
-
-      // Add additional pages if needed
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight
-        pdf.addPage()
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
-        heightLeft -= pageHeight
-      }
-
-      // Generate filename
-      const fileName = `טופס_הרשאה_${formData.name || 'ללא_שם'}_${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
-      
-      // Download the PDF (not print)
-      pdf.save(fileName)
-      
-      // Wait for download to complete
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Prepare email data
-      const serviceType = [
-        formData.checkbox1 ? "יועץ פנסיוני" : "",
-        formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
-        formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
-      ].filter(Boolean).join(", ")
-
-      const emailSubject = `טופס הרשאה חד פעמית - ${formData.name || "ללא שם"}`
-      
-      const emailBody = `שלום,
+    const emailBody = `שלום,
 
 התקבל טופס הרשאה חד פעמית חדש:
 
@@ -236,70 +178,37 @@ function App() {
 
 תאריך שליחה: ${new Date().toLocaleDateString('he-IL')}
 
-🔗 הטופס המלא עם החתימות הדיגיטליות הורד אוטומטית למחשב שלך.
-📎 אנא צרף את קובץ ה-PDF "${fileName}" לדוא"ל זה לפני השליחה.
+📎 הערה חשובה: אנא הורד את הטופס המלא עם החתימות הדיגיטליות באמצעות כפתור "הורד טופס מלא" באתר, וצרף את קובץ ה-PDF לדוא"ל זה לפני השליחה.
 
 בברכה,
 מערכת הטפסים הדיגיטליים`
 
-      // Create mailto link
-      const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-      
-      // Show success message with clear instructions
-      alert(`✅ הטופס הורד בהצלחה!\n\n📧 עכשיו ייפתח לך תוכנת הדוא"ל.\n📎 אנא צרף את הקובץ "${fileName}" מתיקיית ההורדות ושלח את הדוא"ל.`)
-      
-      // Wait a moment then open email
-      setTimeout(() => {
-        window.location.href = mailtoLink
-      }, 1000)
-
-    } catch (error) {
-      console.error("Error generating PDF:", error)
-      
-      // Fallback: Just open email with instructions to use download button
-      const serviceType = [
-        formData.checkbox1 ? "יועץ פנסיוני" : "",
-        formData.checkbox2 ? "סוכן ביטוח פנסיוני" : "",
-        formData.checkbox3 ? "סוכן שיווק פנסיוני" : ""
-      ].filter(Boolean).join(", ")
-
-      const emailSubject = `טופס הרשאה חד פעמית - ${formData.name || "ללא שם"}`
-      
-      const emailBody = `שלום,
-
-התקבל טופס הרשאה חד פעמית חדש:
-
-פרטי הלקוח:
-- שם: ${formData.name || "לא צוין"}
-- מספר זיהוי: ${formData.idChars.join('') || "לא צוין"}
-- כתובת: ${formData.address || "לא צוין"}
-- טלפון: ${formData.phone || "לא צוין"}
-- דוא"ל: ${formData.email || "לא צוין"}
-
-פרטי הסוכן/יועץ:
-- שם: ${formData.agentName || "לא צוין"}
-- מספר רישיון: ${formData.licenseNumber || "לא צוין"}
-- סוג שירות: ${serviceType || "לא צוין"}
-
-תאריך שליחה: ${new Date().toLocaleDateString('he-IL')}
-
-⚠️ הערה: לקבלת הטופס המלא עם החתימות הדיגיטליות, אנא השתמש בכפתור "הורד טופס מלא" באתר ושלח את ה-PDF בנפרד.
-
-בברכה,
-מערכת הטפסים הדיגיטליים`
-
-      const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
-      
-      alert("📧 הדוא\"ל ייפתח עם פרטי הטופס.\n💡 להורדת PDF עם חתימות השתמש בכפתור 'הורד טופס מלא' ושלח בנפרד.")
-      
-      setTimeout(() => {
-        window.location.href = mailtoLink
-      }, 1000)
-    }
+    // Create mailto link
+    const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    
+    // Show message and open email
+    alert("📧 פותח תוכנת דוא\"ל עם פרטי הטופס.\n💡 אל תשכח להוריד את הטופס עם החתימות ולצרף אותו לדוא\"ל!")
+    
+    // Open email client
+    window.location.href = mailtoLink
   }
 
   return (
     <div className="min-h-screen bg-gray-100 py-8" dir="rtl">
+      {/* Instructions Banner */}
+      <div className="max-w-4xl mx-auto mb-6 px-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 shadow-sm">
+          <h2 className="text-lg font-bold text-blue-800 mb-2 text-center">
+            📋 הוראות מילוי ושליחת הטופס
+          </h2>
+          <div className="text-blue-700 text-sm space-y-1">
+            <p><strong>שלב 1:</strong> מלא את כל השדות בטופס וחתום בשני מקומות החתימה הדיגיטליים</p>
+            <p><strong>שלב 2:</strong> לחץ על כפתור <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs">"הורד טופס מלא"</span> להורדת הטופס עם החתימות</p>
+            <p><strong>שלב 3:</strong> לחץ על כפתור <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">"שלח בדוא"ל"</span> לפתיחת תוכנת הדוא"ל</p>
+            <p><strong>שלב 4:</strong> צרף את קובץ ה-PDF שהורדת לדוא"ל ושלח ל-Majdi@kingstore.co.il</p>
+          </div>
+        </div>
+      </div>
       <div className="container mx-auto px-4">
         {/* Active field indicator */}
         {activeField && (
