@@ -144,14 +144,59 @@ function App() {
     alert("מתחיל הורדת הטופס... אנא המתן")
     
     try {
-      // First, always try to download the PDF
-      await generatePDF()
+      // Generate PDF and download it directly (not print)
+      if (!formRef.current) {
+        throw new Error("Form reference not found")
+      }
+
+      // Check if we're on mobile
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+
+      // Mobile-optimized canvas settings
+      const canvasOptions = {
+        scale: isMobile ? 1 : 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        width: formRef.current.scrollWidth,
+        height: formRef.current.scrollHeight
+      }
+
+      // Generate PDF with signatures
+      const canvas = await html2canvas(formRef.current, canvasOptions)
+
+      // Create PDF
+      const imgData = canvas.toDataURL('image/jpeg', 0.8)
+      const pdf = new jsPDF('p', 'mm', 'a4')
       
-      // Wait a moment for download to complete
-      await new Promise(resolve => setTimeout(resolve, 2000))
-      
-      // Generate filename for reference
+      // Calculate dimensions to fit A4
+      const imgWidth = 210 // A4 width in mm
+      const pageHeight = 295 // A4 height in mm
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      let heightLeft = imgHeight
+      let position = 0
+
+      // Add first page
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
+      heightLeft -= pageHeight
+
+      // Add additional pages if needed
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight
+        pdf.addPage()
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight)
+        heightLeft -= pageHeight
+      }
+
+      // Generate filename
       const fileName = `טופס_הרשאה_${formData.name || 'ללא_שם'}_${new Date().toLocaleDateString('he-IL').replace(/\//g, '-')}.pdf`
+      
+      // Download the PDF (not print)
+      pdf.save(fileName)
+      
+      // Wait for download to complete
+      await new Promise(resolve => setTimeout(resolve, 2000))
       
       // Prepare email data
       const serviceType = [
