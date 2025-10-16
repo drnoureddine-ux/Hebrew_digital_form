@@ -145,3 +145,29 @@
     height: auto;
   }
 }
+
+/* Fix ID number display in PDF - force LTR direction for numbers */
+.id-char-box {
+  direction: ltr !important;
+  text-align: center !important;
+  unicode-bidi: bidi-override !important;
+}
+
+/* Ensure ID number container displays correctly */
+.id-container {
+  direction: ltr !important;
+  display: flex !important;
+  flex-direction: row !important;
+}
+
+/* Force numeric content to display left-to-right */
+input[type="text"]:not(.hebrew-text) {
+  direction: ltr;
+  text-align: left;
+}
+
+/* Ensure Hebrew text fields remain RTL */
+.hebrew-text {
+  direction: rtl !important;
+  text-align: right !important;
+}

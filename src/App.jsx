@@ -274,7 +274,7 @@ function App() {
                     onFocus={() => setActiveField('name')}
                     onBlur={() => setActiveField(null)}
                     onKeyDown={(e) => handleKeyDown(e, 'name')}
-                    className="w-full bg-transparent border-none text-sm focus:outline-none"
+                    className="w-full bg-transparent border-none text-sm focus:outline-none hebrew-text"
                   />
                 </div>
               </div>
@@ -282,7 +282,7 @@ function App() {
               {/* ID Number field - now on a separate line */}
               <div className="flex items-center mb-3">
                 <span className="text-sm ml-4">מספר זיהוי:</span>
-                <div className="flex flex-row-reverse gap-0.5">
+                <div className="id-container flex gap-0.5" dir="ltr">
                   {Array.from({ length: 9 }, (_, i) => (
                     <input
                       key={i}
@@ -294,7 +294,7 @@ function App() {
                       onFocus={() => setActiveField(`idChars-${i}`)}
                       onBlur={() => setActiveField(null)}
                       onKeyDown={(e) => handleKeyDown(e, `idChars-${i}`)}
-                      className="w-5 h-7 border border-gray-400 text-center text-sm focus:border-blue-500 focus:outline-none id-char-box"
+                      className="w-5 h-7 border border-gray-400 text-center text-sm focus:border-blue-500 focus:outline-none id-char-box" dir="ltr"
                     />
                   ))}
                 </div>
@@ -312,7 +312,7 @@ function App() {
                     onFocus={() => setActiveField('address')}
                     onBlur={() => setActiveField(null)}
                     onKeyDown={(e) => handleKeyDown(e, 'address')}
-                    className="w-full bg-transparent border-none text-sm focus:outline-none"
+                    className="w-full bg-transparent border-none text-sm focus:outline-none hebrew-text"
                   />
                 </div>
               </div>
@@ -336,7 +336,7 @@ function App() {
                     onFocus={() => setActiveField('agentName')}
                     onBlur={() => setActiveField(null)}
                     onKeyDown={(e) => handleKeyDown(e, 'agentName')}
-                    className="w-full bg-transparent border-none text-sm focus:outline-none"
+                    className="w-full bg-transparent border-none text-sm focus:outline-none hebrew-text"
                   />
                 </div>
                 <span className="text-sm mr-4">רישיון מס':</span>
@@ -349,7 +349,7 @@ function App() {
                     onFocus={() => setActiveField('licenseNumber')}
                     onBlur={() => setActiveField(null)}
                     onKeyDown={(e) => handleKeyDown(e, 'licenseNumber')}
-                    className="w-full bg-transparent border-none text-sm focus:outline-none"
+                    className="w-full bg-transparent border-none text-sm focus:outline-none hebrew-text"
                   />
                 </div>
               </div>
@@ -413,7 +413,7 @@ function App() {
                     onFocus={() => setActiveField('phone')}
                     onBlur={() => setActiveField(null)}
                     onKeyDown={(e) => handleKeyDown(e, 'phone')}
-                    className="w-full bg-transparent border-none text-sm focus:outline-none"
+                    className="w-full bg-transparent border-none text-sm focus:outline-none hebrew-text"
                   />
                 </div>
                 <span className="text-sm mr-4">דוא"ל:</span>
@@ -426,7 +426,7 @@ function App() {
                     onFocus={() => setActiveField('email')}
                     onBlur={() => setActiveField(null)}
                     onKeyDown={(e) => handleKeyDown(e, 'email')}
-                    className="w-full bg-transparent border-none text-sm focus:outline-none"
+                    className="w-full bg-transparent border-none text-sm focus:outline-none hebrew-text"
                   />
                 </div>
               </div>
@@ -511,7 +511,7 @@ function App() {
                     onFocus={() => setActiveField('recipient')}
                     onBlur={() => setActiveField(null)}
                     onKeyDown={(e) => handleKeyDown(e, 'recipient')}
-                    className="w-full bg-transparent border-none text-sm focus:outline-none"
+                    className="w-full bg-transparent border-none text-sm focus:outline-none hebrew-text"
                   />
                 </div>
                 <div className="text-xs text-gray-600">(שם הגוף המוסדי), (מספר ח.פ)</div>
@@ -532,11 +532,11 @@ function App() {
                     onFocus={() => setActiveField('nameB')}
                     onBlur={() => setActiveField(null)}
                     onKeyDown={(e) => handleKeyDown(e, 'nameB')}
-                    className="w-full bg-transparent border-none text-sm focus:outline-none"
+                    className="w-full bg-transparent border-none text-sm focus:outline-none hebrew-text"
                   />
                 </div>
                 <span className="text-sm mr-4">מספר זיהוי:</span>
-                <div className="flex flex-row-reverse gap-0.5">
+                <div className="id-container flex gap-0.5" dir="ltr">
                   {Array.from({ length: 9 }, (_, i) => (
                     <input
                       key={i}
@@ -548,7 +548,7 @@ function App() {
                       onFocus={() => setActiveField(`idCharsB-${i}`)}
                       onBlur={() => setActiveField(null)}
                       onKeyDown={(e) => handleKeyDown(e, `idCharsB-${i}`)}
-                      className="w-5 h-7 border border-gray-400 text-center text-sm focus:border-blue-500 focus:outline-none id-char-box"
+                      className="w-5 h-7 border border-gray-400 text-center text-sm focus:border-blue-500 focus:outline-none id-char-box" dir="ltr"
                     />
                   ))}
                 </div>
