@@ -184,7 +184,7 @@ function App() {
 מערכת הטפסים הדיגיטליים`
 
     // Create mailto link
-    const mailtoLink = `mailto:Majdi@kingstore.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    const mailtoLink = `mailto:arsan@future-ins.co.il?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
     
     // Show message and open email
     alert("📧 פותח תוכנת דוא\"ל עם פרטי הטופס.\n💡 אל תשכח להוריד את הטופס עם החתימות ולצרף אותו לדוא\"ל!")
@@ -205,7 +205,7 @@ function App() {
             <p><strong>שלב 1:</strong> מלא את כל השדות בטופס וחתום בשני מקומות החתימה הדיגיטליים</p>
             <p><strong>שלב 2:</strong> לחץ על כפתור <span className="bg-blue-600 text-white px-2 py-1 rounded text-xs">"הורד טופס מלא"</span> להורדת הטופס עם החתימות</p>
             <p><strong>שלב 3:</strong> לחץ על כפתור <span className="bg-green-600 text-white px-2 py-1 rounded text-xs">"שלח בדוא"ל"</span> לפתיחת תוכנת הדוא"ל</p>
-            <p><strong>שלב 4:</strong> צרף את קובץ ה-PDF שהורדת לדוא"ל ושלח ל-Majdi@kingstore.co.il</p>
+            <p><strong>שלב 4:</strong> צרף את קובץ ה-PDF שהורדת לדוא"ל ושלח ל-arsan@future-ins.co.il</p>
           </div>
         </div>
       </div>
